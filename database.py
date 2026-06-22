@@ -76,6 +76,11 @@ def init_db():
         PRIMARY KEY (brand, model)
     )''')
 
+    cur.execute('''CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT
+    )''')
+
     conn.commit()
 
     # ── Migration: add columns that might be missing ──
@@ -190,6 +195,23 @@ def get_all_costs():
     rows = conn.execute("SELECT brand, model, price FROM costs").fetchall()
     conn.close()
     return [{'brand': r[0], 'model': r[1], 'price': r[2]} for r in rows]
+
+def set_price_filter(min_p, max_p):
+    conn = _conn()
+    conn.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('min_price', ?)", (str(min_p),))
+    conn.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('max_price', ?)", (str(max_p),))
+    conn.commit()
+    conn.close()
+
+def get_price_filter():
+    conn = _conn()
+    min_row = conn.execute("SELECT value FROM settings WHERE key='min_price'").fetchone()
+    max_row = conn.execute("SELECT value FROM settings WHERE key='max_price'").fetchone()
+    conn.close()
+    
+    min_p = float(min_row[0]) if min_row else None
+    max_p = float(max_row[0]) if max_row else None
+    return min_p, max_p
 
 
 # ═════════════════════════════════════════════════════════════════════
