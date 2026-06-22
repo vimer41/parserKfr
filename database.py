@@ -3,7 +3,7 @@ import datetime
 import os
 import json
 
-DB_PATH = os.path.join(os.path.dirname(__file__), 'kufar_data.db')
+DB_PATH = os.getenv('DB_PATH', os.path.join(os.path.dirname(__file__), 'kufar_data.db'))
 
 # ── Kufar category codes → simplified ────────────────────────────────
 CATEGORY_MAP = {
