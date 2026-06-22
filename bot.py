@@ -51,8 +51,8 @@ if BOT_TOKEN:
 
             "⚙️ <b>Управление:</b>\n"
             "/brands — отслеживаемые бренды\n"
-            "/add [бренд]  ·  /remove [бренд]\n\n"
-
+            "/add [бренд]  ·  /remove [бренд]\n"
+            "/filter [мин] [макс] — установить фильтр цен (напр: /filter 50 1500)\n\n"
             "🔔 Бот <b>сам</b> пришлёт уведомление при дефиците!",
             parse_mode="HTML",
             reply_markup=ReplyKeyboardMarkup(
@@ -398,6 +398,22 @@ if BOT_TOKEN:
         b = args[1].strip()
         database.remove_brand(b)
         await message.answer(f"🗑 «{b}» удалён.")
+
+    @dp.message(Command("filter"))
+    async def cmd_filter(message: Message):
+        args = message.text.split()
+        if len(args) != 3:
+            await message.answer("Использование: /filter [мин_цена] [макс_цена]\nНапример: <code>/filter 50 1500</code>", parse_mode="HTML")
+            return
+        try:
+            min_p = float(args[1])
+            max_p = float(args[2])
+        except ValueError:
+            await message.answer("Цены должны быть числами!")
+            return
+        
+        database.set_price_filter(min_p, max_p)
+        await message.answer(f"✅ Фильтр цен обновлен: ищем товары от <b>{min_p:.0f}</b> до <b>{max_p:.0f}</b> BYN.", parse_mode="HTML")
 
     # ═════════════════════════════════════════════════════════════════
     #  Deficit notifications (called from scheduler)
