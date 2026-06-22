@@ -217,9 +217,12 @@ def parse_brand(brand: str, max_pages: int = 5) -> list[dict]:
 
     for page in range(max_pages):
         params = {"query": brand, "size": 200, "sort": "lst.d"}
-        
-        min_price = os.getenv("MIN_PRICE")
-        max_price = os.getenv("MAX_PRICE")
+        min_price, max_price = database.get_price_filter()
+        if min_price is None:
+            min_price = os.getenv("MIN_PRICE")
+        if max_price is None:
+            max_price = os.getenv("MAX_PRICE")
+            
         if min_price and max_price:
             params["prc"] = f"r:{int(min_price)*100},{int(max_price)*100}"
         elif min_price:
