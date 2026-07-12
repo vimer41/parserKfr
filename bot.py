@@ -96,6 +96,35 @@ if BOT_TOKEN:
         await message.answer(t, parse_mode="HTML")
 
     # ═════════════════════════════════════════════════════════════════
+    #  /get_db — Скачать файл базы данных
+    # ═════════════════════════════════════════════════════════════════
+    @dp.message(Command("get_db"))
+    async def cmd_get_db(message: Message):
+        from aiogram.types import FSInputFile
+        import os
+        
+        # Можно раскомментировать строки ниже и вписать свой Telegram ID, 
+        # чтобы никто чужой не смог скачать вашу базу.
+        # if message.from_user.id != 123456789:  # Замените на ваш ID
+        #     return
+
+        # Путь к БД берём из вашего файла database.py
+        db_path = database.DB_PATH
+        
+        if not os.path.exists(db_path):
+            await message.answer("❌ Файл базы данных не найден на сервере.")
+            return
+
+        msg = await message.answer("⏳ Отправляю базу данных, подождите...")
+        try:
+            document = FSInputFile(db_path)
+            await message.answer_document(document, caption="📦 Ваш файл базы данных (kufar_data.db)")
+            await msg.delete()  # Удаляем сообщение "Отправляю..."
+        except Exception as e:
+            await msg.edit_text(f"❌ Ошибка при отправке файла: {e}")
+
+    
+    # ═════════════════════════════════════════════════════════════════
     #  /market [бренд]  —  полный разбор рынка
     # ═════════════════════════════════════════════════════════════════
     @dp.message(Command("market"))
