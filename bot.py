@@ -99,29 +99,36 @@ if BOT_TOKEN:
     #  /get_db — Скачать файл базы данных
     # ═════════════════════════════════════════════════════════════════
     @dp.message(Command("get_db"))
+        @dp.message(Command("get_db"))
     async def cmd_get_db(message: Message):
         from aiogram.types import FSInputFile
+        import sqlite3
         import os
         
-        # Можно раскомментировать строки ниже и вписать свой Telegram ID, 
-        # чтобы никто чужой не смог скачать вашу базу.
-        # if message.from_user.id != 123456789:  # Замените на ваш ID
-        #     return
-
-        # Путь к БД берём из вашего файла database.py
         db_path = database.DB_PATH
         
         if not os.path.exists(db_path):
-            await message.answer("❌ Файл базы данных не найден на сервере.")
+            await message.answer("❌ Файл базы данных не найден.")
             return
 
-        msg = await message.answer("⏳ Отправляю базу данных, подождите...")
+        msg = await message.answer("⏳ Сохраняю данные и готовлю файл...")
+        
+        # 1. Заставляем SQLite слить все свежие данные в один основной файл .db
+        try:
+            conn = sqlite3.connect(db_path)
+            conn.execute("PRAGMA wal_checkpoint(TRUNCATE);")
+            conn.close()
+        except Exception as e:
+            print("Ошибка при checkpoint:", e)
+
+        # 2. Отправляем полностью обновленный файл
         try:
             document = FSInputFile(db_path)
-            await message.answer_document(document, caption="📦 Ваш файл базы данных (kufar_data.db)")
-            await msg.delete()  # Удаляем сообщение "Отправляю..."
+            await message.answer_document(document, caption="📦 Ваша полная база данных")
+            await msg.delete()
         except Exception as e:
             await msg.edit_text(f"❌ Ошибка при отправке файла: {e}")
+
 
     
     # ═════════════════════════════════════════════════════════════════
